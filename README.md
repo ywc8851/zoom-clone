@@ -1,3 +1,3 @@
-#Zoom Clone Coding
+# Noom
 
-Zoom Clone coding using NodeJS, WebRTC and Websockets.
+Zoom Clone using NodeJS, WebRTC and Websockets.
