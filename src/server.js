@@ -24,14 +24,25 @@ function onSocketClose() {
   console.log("Disconnected from the Browser ❌");
 }
 
-function onSocketMessage(message) {
-  console.log(message);
-}
+const sockets = []; // 누군가 서버에 연결시 그 connection을 넣어주는 배열
+
 wss.on("connection", (socket) => {
+  sockets.push(socket); // ex)크롬으로 접속시 크롬을 배열에넣어줌
+  socket["nickname"] = "Anonymous";
   console.log("Connected to Browser ✅");
   socket.on("close", onSocketClose);
-  socket.on("message", onSocketMessage);
-  socket.send("hello!!!"); // back -> front 로 보내기
+  // socket.send("hello!!!"); // back -> front 로 보내기
+  socket.on("message", (msg) => {
+    const message = JSON.parse(msg); // parse : string을 object로 바꿔줌
+    switch (message.type) {
+      case "new_message":
+        sockets.forEach(
+          (aSocket) => aSocket.send(`${socket.nickname}: ${message.payload}`) // 메시지작성자 : 메시지내용
+        );
+      case "nickname":
+        socket["nickname"] = message.payload; // nickname 속성을 socket에 추가
+    }
+  });
 });
 
 server.listen(3000, handleListen);
