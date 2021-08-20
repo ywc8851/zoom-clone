@@ -1,4 +1,4 @@
-// frontend에서 작동
+/* // frontend에서 작동
 // socket : 서버로의 연결
 const socket = new WebSocket(`ws://${window.location.host}`);
 const messageList = document.querySelector("ul");
@@ -46,3 +46,28 @@ function handleNickSubmit(event) {
 
 messageForm.addEventListener("submit", handleSubmit);
 nickForm.addEventListener("submit", handleNickSubmit);
+ */
+
+const socket = io();
+
+const welcome = document.getElementById("welcome");
+const form = welcome.querySelector("form");
+
+function backendDone(msg) {
+  console.log(`The backend says: `, msg);
+}
+
+function handleRoomSubmit(event) {
+  event.preventDefault();
+  const input = form.querySelector("input");
+
+  /* 
+  emit 첫번째인자 : event 이름 , 두번째인자 : 보내고싶은 payload , 세번째인자 : 서버에서 호출하는 function(끝날때실행) 
+  emit하면 argument(여기선 object)를 보낼수있음, string으로 변환필요없음
+  */
+  socket.emit("enter_room", input.value, backendDone);
+
+  input.value = "";
+}
+
+form.addEventListener("submit", handleRoomSubmit);

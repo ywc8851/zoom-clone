@@ -2,7 +2,7 @@
 // 나머지는 websocket에서 실시간으로 일어남
 // 백앤드에서 작동
 import http from "http";
-import WebSocket from "ws";
+import SocketIO from "socket.io";
 import express from "express";
 
 const app = express();
@@ -14,18 +14,21 @@ app.use("/public", express.static(__dirname + "/public"));
 app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
-const handleListen = () => console.log(`Listening on http://localhost:3000`);
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-// 위의 두줄로 http 서버, websocket 서버 둘다작동가능
-
-function onSocketClose() {
-  console.log("Disconnected from the Browser ❌");
-}
+// frontend 에서 backend 으로 연결
+wsServer.on("connection", (socket) => {
+  socket.on("enter_room", (roomName, done) => {
+    console.log(roomName);
+    setTimeout(() => {
+      done("hello from the backend");
+    }, 3000);
+  });
+});
 
 const sockets = []; // 누군가 서버에 연결시 그 connection을 넣어주는 배열
-
+/*
 wss.on("connection", (socket) => {
   sockets.push(socket); // ex)크롬으로 접속시 크롬을 배열에넣어줌
   socket["nickname"] = "Anonymous";
@@ -44,5 +47,6 @@ wss.on("connection", (socket) => {
     }
   });
 });
-
-server.listen(3000, handleListen);
+*/
+const handleListen = () => console.log(`Listening on http://localhost:3000`);
+httpServer.listen(3000, handleListen);
