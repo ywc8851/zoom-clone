@@ -47,14 +47,40 @@ function handleNickSubmit(event) {
 messageForm.addEventListener("submit", handleSubmit);
 nickForm.addEventListener("submit", handleNickSubmit);
  */
-
 const socket = io();
 
 const welcome = document.getElementById("welcome");
 const form = welcome.querySelector("form");
+const room = document.getElementById("room");
 
-function backendDone(msg) {
-  console.log(`The backend says: `, msg);
+room.hidden = true; // 채팅방 들어가기전에 화면에 나타내지 않음
+
+let roomName;
+function addMessage(message) {
+  const ul = room.querySelector("ul");
+  const li = document.createElement("li");
+  li.innerText = message;
+  ul.appendChild(li);
+}
+
+function handleMessageSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector("input");
+  const value = input.value;
+  // 백앤드로 메시지보내기  new_message이벤트보내기
+  socket.emit("new_message", input.value, roomName, () => {
+    addMessage(`You: ${value}`);
+  });
+  input.value = "";
+}
+
+function showRoom() {
+  welcome.hidden = true;
+  room.hidden = false; // 채팅방 들어가면 화면에 나타냄
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName}`; // 방제목변경
+  const form = room.querySelector("form");
+  form.addEventListener("submit", handleMessageSubmit);
 }
 
 function handleRoomSubmit(event) {
@@ -65,9 +91,21 @@ function handleRoomSubmit(event) {
   emit 첫번째인자 : event 이름 , 두번째인자 : 보내고싶은 payload , 세번째인자 : 서버에서 호출하는 function(끝날때실행) 
   emit하면 argument(여기선 object)를 보낼수있음, string으로 변환필요없음
   */
-  socket.emit("enter_room", input.value, backendDone);
+  socket.emit("enter_room", input.value, showRoom);
+  roomName = input.value;
 
   input.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
+
+socket.on("welcome", () => {
+  addMessage("someone joined!");
+});
+
+socket.on("bye", () => {
+  addMessage("someone left ㅠㅠ");
+});
+
+// 새로운 메시지 받기
+socket.on("new_message", addMessage);
